@@ -36,7 +36,7 @@ export default function Viewport() {
   )
 }
 
-/* ── Soft warm daylight — no rotating light ── */
+/* ── Soft warm daylight ── */
 function SceneLighting() {
   return (
     <>
@@ -48,20 +48,20 @@ function SceneLighting() {
   )
 }
 
-/* ── Warm light-mode grid only — no solid floor plane ── */
+/* ── Sharp warm grid — higher thickness + contrast ── */
 function SceneGrid() {
   return (
     <Grid
       position={[0, -0.01, 0]}
       args={[40, 40]}
       cellSize={1}
-      cellThickness={0.5}
-      cellColor="#dddbd0"
+      cellThickness={1}
+      cellColor="#ccc8bb"
       sectionSize={5}
-      sectionThickness={1}
-      sectionColor="#c8c5b8"
-      fadeDistance={40}
-      fadeStrength={1}
+      sectionThickness={1.5}
+      sectionColor="#b0ab9c"
+      fadeDistance={50}
+      fadeStrength={0.8}
       infiniteGrid
     />
   )

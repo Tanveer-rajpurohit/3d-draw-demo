@@ -17,8 +17,8 @@ export default function Toolbar() {
     display:'flex', alignItems:'center', justifyContent:'center',
     width:'32px', height:'32px', borderRadius:'6px', cursor:'pointer',
     border:'none', outline:'none', transition:'all .15s ease', fontFamily:'inherit',
-    backgroundColor: on?'var(--accent-blue)':'transparent',
-    color: on?'white':'var(--text-muted)',
+    backgroundColor: on ? 'var(--accent-brand)' : 'transparent',
+    color: on ? 'white' : 'var(--text-muted)',
   })
 
   return (
@@ -27,9 +27,9 @@ export default function Toolbar() {
       <div style={{
         position:'absolute', bottom:'100px', left:'50%', transform:'translateX(-50%)',
         display:'flex', alignItems:'center', gap:'2px',
-        backgroundColor:'rgba(19,19,24,.92)', backdropFilter:'blur(12px)',
+        backgroundColor:'rgba(255, 253, 248, 0.92)', backdropFilter:'blur(12px)',
         border:'1px solid var(--border)', borderRadius:'10px', padding:'4px',
-        boxShadow:'0 4px 24px rgba(0,0,0,.4)', zIndex:15,
+        boxShadow:'0 2px 12px rgba(0,0,0,.06)', zIndex:15,
       }}>
         {modes.map((m) => (
           <button key={m.id} onClick={() => setTransformMode(m.id)} title={`${m.label} (${m.key})`} style={btn(transformMode===m.id)}
