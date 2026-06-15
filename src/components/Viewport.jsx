@@ -1,5 +1,5 @@
-import React, { Suspense, useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import React, { Suspense } from 'react'
+import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Grid, GizmoHelper, GizmoViewport } from '@react-three/drei'
 import SceneObjects from './SceneObjects'
 import useStore from '../store/store'
@@ -8,7 +8,7 @@ function LoadingFallback() {
   return (
     <mesh>
       <sphereGeometry args={[0.3, 16, 16]} />
-      <meshBasicMaterial color="#4a9eff" wireframe />
+      <meshBasicMaterial color="#c96442" wireframe />
     </mesh>
   )
 }
@@ -22,10 +22,10 @@ export default function Viewport() {
       gl={{ antialias: true, powerPreference: 'high-performance', stencil: false, alpha: false }}
       dpr={[1, 1.5]}
       shadows={false}
-      style={{ background: '#0a0a0f' }}
+      style={{ background: '#f2f0e8' }}
       onPointerMissed={() => setSelectedIds([])}
     >
-      <color attach="background" args={['#0a0a0f']} />
+      <color attach="background" args={['#f2f0e8']} />
       <Suspense fallback={<LoadingFallback />}>
         <SceneLighting />
         <SceneGrid />
@@ -37,28 +37,19 @@ export default function Viewport() {
   )
 }
 
-/* ── Sci-Fi lighting with slow-rotating point light ── */
+/* ── Soft warm daylight — no rotating light ── */
 function SceneLighting() {
-  const ref = useRef()
-  useFrame(({ clock }) => {
-    if (ref.current) {
-      const t = clock.getElapsedTime() * 0.15
-      ref.current.position.x = Math.cos(t) * 8
-      ref.current.position.z = Math.sin(t) * 8
-    }
-  })
   return (
     <>
-      <ambientLight intensity={0.3} color="#334466" />
-      <directionalLight position={[5, 10, 5]} intensity={0.8} color="#aaccff" />
-      <directionalLight position={[-5, -2, -8]} intensity={0.2} color="#334488" />
-      <pointLight ref={ref} position={[0, 5, 0]} intensity={0.5} color="#4488ff" distance={20} />
-      <hemisphereLight color="#334466" groundColor="#111122" intensity={0.4} />
+      <ambientLight intensity={0.9} color="#fff8f0" />
+      <directionalLight position={[8, 14, 6]} intensity={1.1} color="#fffaf5" />
+      <directionalLight position={[-6, 4, -8]} intensity={0.3} color="#f5f0e8" />
+      <hemisphereLight color="#f5f0e8" groundColor="#e8e4d8" intensity={0.6} />
     </>
   )
 }
 
-/* ── Infinite grid ── */
+/* ── Warm light-mode grid ── */
 function SceneGrid() {
   return (
     <Grid
@@ -66,23 +57,23 @@ function SceneGrid() {
       args={[40, 40]}
       cellSize={1}
       cellThickness={0.5}
-      cellColor="#1a1a28"
+      cellColor="#dddbd0"
       sectionSize={5}
       sectionThickness={1}
-      sectionColor="#252535"
+      sectionColor="#c8c5b8"
       fadeDistance={40}
-      fadeStrength={1.2}
+      fadeStrength={1}
       infiniteGrid
     />
   )
 }
 
-/* ── Dark reflective floor ── */
+/* ── Warm white floor ── */
 function FloorPlane() {
   return (
     <mesh position={[0, -0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[40, 40]} />
-      <meshStandardMaterial color="#0d0d14" transparent opacity={0.6} roughness={0.9} metalness={0} />
+      <planeGeometry args={[80, 80]} />
+      <meshStandardMaterial color="#ede9df" roughness={1} metalness={0} />
     </mesh>
   )
 }
@@ -100,7 +91,7 @@ function SceneControls() {
         maxPolarAngle={Math.PI * 0.85}
       />
       <GizmoHelper alignment="top-right" margin={[70, 70]}>
-        <GizmoViewport axisColors={['#ff4060', '#40ff60', '#4060ff']} labelColor="white" />
+        <GizmoViewport axisColors={['#c96442', '#5a8a4a', '#3898ec']} labelColor="#141413" />
       </GizmoHelper>
     </>
   )
