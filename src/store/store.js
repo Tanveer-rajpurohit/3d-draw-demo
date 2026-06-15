@@ -10,6 +10,10 @@ const useStore = create((set, get) => ({
   selectedIds: [],
   transformMode: 'translate',
   
+  // Material/Render mode — default is scifi
+  materialMode: 'scifi',
+  setMaterialMode: (mode) => set({ materialMode: mode }),
+
   // Undo/Redo History
   history: [JSON.stringify([])],
   historyIndex: 0,
@@ -17,15 +21,15 @@ const useStore = create((set, get) => ({
   // Clipboard
   clipboard: [],
 
-  // Render mode
-  renderMode: 'solid', // solid, wireframe, normals, depth, uv, flat, matcap
+  // Render mode (legacy alias — now mapped through materialMode)
+  renderMode: 'solid',
 
   // CSG Operations
   performCSG: (operation) => {
     get().saveHistory()
     set((state) => {
       const selected = state.selectedIds.map(id => state.sceneObjects.find(o => o.id === id)).filter(Boolean)
-      if (selected.length < 2) return state // Need at least 2 objects
+      if (selected.length < 2) return state
 
       const baseObj = selected[0]
       const opObjs = selected.slice(1)
@@ -34,7 +38,6 @@ const useStore = create((set, get) => ({
       let finalBase = baseObj;
       let accumulatedOps = [];
 
-      // If baseObj is already a CSG, we unwrap it so we can append to its flat list of operations
       if (baseObj.type === 'csg') {
         finalBase = baseObj.csgData.base;
         accumulatedOps = [...baseObj.csgData.operands];
@@ -42,8 +45,6 @@ const useStore = create((set, get) => ({
 
       opObjs.forEach(op => {
         if (op.type === 'csg') {
-           // Flattening an operand that is a CSG: append its base with the parent operation, 
-           // and append its inner operations as well. This prevents nesting from breaking the tree!
            accumulatedOps.push({ obj: op.csgData.base, operation });
            op.csgData.operands.forEach(innerOp => {
              accumulatedOps.push({ obj: innerOp.obj, operation: innerOp.operation });
@@ -57,7 +58,7 @@ const useStore = create((set, get) => ({
         id: newId,
         type: 'csg',
         name: `CSG ${operation.charAt(0).toUpperCase() + operation.slice(1)}`,
-        position: [0, 0, 0], // Center of world, children keep their world pos
+        position: [0, 0, 0],
         rotation: [0, 0, 0],
         scale: [1, 1, 1],
         geometryArgs: [],
@@ -85,8 +86,8 @@ const useStore = create((set, get) => ({
 
   // UI state
   sidebarTab: 'primitives',
-  rightPanelTab: 'scene', // scene, project, settings
-  propertiesTab: 'object', // object, geometry, material, script
+  rightPanelTab: 'scene',
+  propertiesTab: 'object',
   isGenerating: false,
   generationStatus: '',
   showShortcuts: false,
@@ -175,65 +176,55 @@ const useStore = create((set, get) => ({
     })
   },
 
-  addPrimitive: (type) => {
+  addPrimitive: (type, overrides = {}) => {
     get().saveHistory()
     const id = `obj_${nextId++}`
-    const names = {
-      box: 'Box', capsule: 'Capsule', circle: 'Circle', cylinder: 'Cylinder',
-      dodecahedron: 'Dodecahedron', icosahedron: 'Icosahedron', lathe: 'Lathe',
-      octahedron: 'Octahedron', plane: 'Plane', ring: 'Ring', sphere: 'Sphere',
-      tetrahedron: 'Tetrahedron', torus: 'Torus', torusknot: 'TorusKnot', tube: 'Tube',
-      cone: 'Cone',
+
+    const defaultArgs = {
+      box: [1, 1, 1, 1, 1, 1],
+      cylinder: [1, 1, 2, 32, 1, 0],
+      sphere: [1, 32, 16, 0, Math.PI * 2, 0, Math.PI],
+      cone: [1, 2, 32, 1, 0, 0, Math.PI * 2],
+      torus: [1, 0.4, 16, 100, Math.PI * 2],
+      plane: [1, 1, 1, 1],
+      capsule: [1, 1, 4, 8],
+      circle: [1, 32, 0, Math.PI * 2],
+      dodecahedron: [1, 0],
+      icosahedron: [1, 0],
+      octahedron: [1, 0],
+      tetrahedron: [1, 0],
+      ring: [0.5, 1, 32, 1, 0, Math.PI * 2],
+      torusknot: [1, 0.4, 64, 8, 2, 3],
+      tube: [null, 64, 0.2, 8, false],
+      lathe: [null, 12],
+      pointlight: [0xffffff, 1, 100],
+      directionallight: [0xffffff, 1],
+      spotlight: [0xffffff, 1, 0, Math.PI / 3, 0.5, 1],
+      hemispherelight: [0xffffff, 0x444444, 1],
+      ambientlight: [0xffffff, 0.2],
     }
+
+    const names = {
+      box: 'Box', cylinder: 'Cylinder', sphere: 'Sphere', cone: 'Cone', torus: 'Torus',
+      plane: 'Plane', capsule: 'Capsule', circle: 'Circle', dodecahedron: 'Dodecahedron',
+      icosahedron: 'Icosahedron', octahedron: 'Octahedron', tetrahedron: 'Tetrahedron',
+      ring: 'Ring', torusknot: 'Torus Knot', tube: 'Tube', lathe: 'Lathe', csg: 'CSG',
+      pointlight: 'Point Light', directionallight: 'Directional Light', spotlight: 'Spot Light',
+      hemispherelight: 'Hemisphere Light', ambientlight: 'Ambient Light',
+    }
+
     set((state) => {
-      // Offset position based on number of objects so they don't overlap exactly
       const offset = state.sceneObjects.length * 1.5;
       
-      const defaultArgs = {
-        box: [1, 1, 1, 1, 1, 1], // width, height, depth, widthSegs, heightSegs, depthSegs
-        cylinder: [1, 1, 2, 32, 1, 0], // radiusTop, radiusBot, height, radialSegments, heightSegments, openEnded
-        sphere: [1, 32, 16, 0, Math.PI * 2, 0, Math.PI], // radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength
-        cone: [1, 2, 32, 1, 0, 0, Math.PI * 2], // radius, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength
-        torus: [1, 0.4, 16, 100, Math.PI * 2], // radius, tube, radialSegments, tubularSegments, arc
-        plane: [1, 1, 1, 1], // width, height, widthSegments, heightSegments
-        capsule: [1, 1, 4, 8], // radius, length, capSegments, radialSegments
-        circle: [1, 32, 0, Math.PI * 2], // radius, segments, thetaStart, thetaLength
-        dodecahedron: [1, 0], // radius, detail
-        icosahedron: [1, 0],
-        octahedron: [1, 0],
-        tetrahedron: [1, 0],
-        ring: [0.5, 1, 32, 1, 0, Math.PI * 2], // innerRadius, outerRadius, thetaSegments, phiSegments, thetaStart, thetaLength
-        torusknot: [1, 0.4, 64, 8, 2, 3], // radius, tube, tubularSegments, radialSegments, p, q
-        tube: [null, 64, 0.2, 8, false], // Custom args not easily editable
-        lathe: [null, 12],
-        pointlight: [0xffffff, 1, 100],
-        directionallight: [0xffffff, 1],
-        spotlight: [0xffffff, 1, 0, Math.PI / 3, 0.5, 1],
-        hemispherelight: [0xffffff, 0x444444, 1],
-        ambientlight: [0xffffff, 0.2],
-        perspectivecamera: [75, 1, 0.1, 1000],
-        orthographiccamera: [-1, 1, 1, -1, 0.1, 1000],
-      }
-
-      const names = {
-        box: 'Box', cylinder: 'Cylinder', sphere: 'Sphere', cone: 'Cone', torus: 'Torus',
-        plane: 'Plane', capsule: 'Capsule', circle: 'Circle', dodecahedron: 'Dodecahedron',
-        icosahedron: 'Icosahedron', octahedron: 'Octahedron', tetrahedron: 'Tetrahedron',
-        ring: 'Ring', torusknot: 'Torus Knot', tube: 'Tube', lathe: 'Lathe', csg: 'CSG',
-        pointlight: 'Point Light', directionallight: 'Directional Light', spotlight: 'Spot Light',
-        hemispherelight: 'Hemisphere Light', ambientlight: 'Ambient Light', perspectivecamera: 'Perspective Camera',
-        orthographiccamera: 'Orthographic Camera'
-      }
-
       const obj = {
         id,
         type,
-        name: names[type] || type.charAt(0).toUpperCase() + type.slice(1),
-        position: [offset - 3, 0.977, 0], // Spread out along X axis
-        rotation: [0, 0, 0],
-        scale: [1, 1, 1],
-        geometryArgs: defaultArgs[type] || [1],
-        color: '#aaaaaa',
+        name: overrides.name || names[type] || type.charAt(0).toUpperCase() + type.slice(1),
+        position: overrides.position || [offset - 3, 0.977, 0],
+        rotation: overrides.rotation || [0, 0, 0],
+        scale: overrides.scale || [1, 1, 1],
+        geometryArgs: overrides.geometryArgs || defaultArgs[type] || [1],
+        color: overrides.color || '#aaaaaa',
         visible: true,
         castShadow: false,
         receiveShadow: false,
@@ -254,9 +245,6 @@ const useStore = create((set, get) => ({
   },
 
   updateObject: (id, updates) => {
-    // If we trigger saveHistory on EVERY slider tick, it will lag and spam history.
-    // Let's assume TransformControls triggers onObjectChange (which is throttled).
-    // The history save should ideally happen on transform end, but we'll do a simple check.
     set((state) => ({
       sceneObjects: state.sceneObjects.map((o) =>
         o.id === id ? { ...o, ...updates } : o
@@ -283,7 +271,7 @@ const useStore = create((set, get) => ({
       visible: true,
       castShadow: true,
       receiveShadow: true,
-      color: '#ffffff', // Dummy color to satisfy material logic if needed elsewhere
+      color: '#ffffff',
     }
     set((state) => ({
       sceneObjects: [...state.sceneObjects, obj],
@@ -298,9 +286,7 @@ const useStore = create((set, get) => ({
     try {
       let finalModelUrl = null;
 
-      // ----------------------------------------------------
       // OPTION 1: PiAPI Trellis
-      // ----------------------------------------------------
       if (provider === 'piapi') {
         let inputPayload = {};
         let taskType = "text-to-3d";
@@ -382,9 +368,7 @@ const useStore = create((set, get) => ({
         }
       }
 
-      // ----------------------------------------------------
       // OPTION 2: Hugging Face Spaces (via Gradio)
-      // ----------------------------------------------------
       else if (provider === 'hf') {
         const { Client } = await import('@gradio/client');
         set({ generationStatus: 'Connecting to Hugging Face Spaces (tencent/Hunyuan3D-2)...' });
@@ -395,35 +379,18 @@ const useStore = create((set, get) => ({
           
           if (file) {
              set({ generationStatus: 'Sending image to tencent/Hunyuan3D-2...' });
-             // Hunyuan3D-2 /shape_generation requires specific positional arguments based on its Gradio config
              result = await client.predict("/shape_generation", [
-                prompt || "", // 8: text
-                file,         // 6: image
-                null,         // 12: image_front
-                null,         // 13: image_right
-                null,         // 15: image_back
-                null,         // 16: image_left
-                30,           // 35: Inference Steps
-                5.0,          // 39: Guidance Scale
-                1234,         // 33: Seed
-                256,          // 36: Octree Resolution
-                true,         // 30: Remove Background
-                8000,         // 40: Number of Chunks
-                true          // 31: Randomize seed
+                prompt || "",
+                file,
+                null, null, null, null,
+                30, 5.0, 1234, 256, true, 8000, true
              ]);
           } else if (prompt) {
              set({ generationStatus: 'Sending text to tencent/Hunyuan3D-2...' });
              result = await client.predict("/shape_generation", [
-                prompt,       // text
-                null,         // image
+                prompt, null,
                 null, null, null, null,
-                30,           // steps
-                5.0,          // guidance
-                1234,         // seed
-                256,          // octree
-                true,         // remove bg
-                8000,         // chunks
-                true          // randomize seed
+                30, 5.0, 1234, 256, true, 8000, true
              ]);
           }
 
@@ -438,9 +405,7 @@ const useStore = create((set, get) => ({
         }
       }
 
-      // ----------------------------------------------------
       // OPTION 3: Tripo3D API
-      // ----------------------------------------------------
       else if (provider === 'tripo') {
         let fileToken = null;
         if (file) {
@@ -541,7 +506,7 @@ const useStore = create((set, get) => ({
 
     } catch (error) {
       console.error("API Error:", error);
-      set({ isGenerating: false, generationStatus: 'Generation failed. Check console.' })
+      set({ isGenerating: false, generationStatus: `Error: ${error.message}` })
     }
   },
 }))

@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react'
 import useStore from '../store/store'
 
+const presets = ['Fighter Jet', 'Stealth Drone', 'Transport Aircraft', 'Helicopter', 'Space Shuttle', 'Attack UAV']
+
 export default function AIGenerationPanel() {
   const [prompt, setPrompt] = useState('')
   const [uploadedFile, setUploadedFile] = useState(null)
@@ -27,200 +29,248 @@ export default function AIGenerationPanel() {
     if (file) setUploadedFile(file)
   }
 
+  const labelStyle = {
+    fontSize: '10px',
+    fontWeight: 500,
+    color: 'var(--text-muted)',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+  }
+
+  const canGenerate = prompt.trim() || uploadedFile
+
   return (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }} className="animate-fade-in">
+    <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-        <div style={{ width: '6px', height: '6px' }} className="rounded-full bg-accent-lavender" />
-        <span className="text-[11px] font-semibold tracking-wider text-accent-lavender">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-blue))' }} />
+        <span style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--accent-purple)' }}>
           AI MODEL GENERATION
         </span>
       </div>
 
-      {/* Provider Selection */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <label className="text-[10px] font-medium text-text-muted tracking-wider uppercase">
-          AI Provider
-        </label>
-        <select
-          value={provider}
-          onChange={(e) => setProvider(e.target.value)}
-          style={{ width: '100%', padding: '8px 12px' }}
-          className="bg-bg-primary border border-border-default rounded-md text-xs text-text-primary focus:outline-none focus:border-accent-lavender/50 transition-colors duration-200 cursor-pointer"
-        >
-          <option value="piapi">PiAPI Trellis (Option 1)</option>
-          <option value="hf">Hugging Face Spaces (Option 2)</option>
-          <option value="tripo">Tripo3D (Option 3 - Enterprise)</option>
-        </select>
-      </div>
-
-      {/* PiAPI Parameters (Only show if provider is piapi) */}
-      {provider === 'piapi' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '8px', backgroundColor: '#1a1a1f', borderRadius: '8px', border: '1px solid #333' }}>
-           <label className="text-[10px] font-medium text-accent-lavender tracking-wider uppercase">
-            Trellis Quality Parameters
-          </label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-               <label className="text-[9px] text-text-muted truncate">SS Sampling ({piapiParams.ss_sampling_steps})</label>
-               <input type="range" min="10" max="50" value={piapiParams.ss_sampling_steps} onChange={e => setPiapiParams({...piapiParams, ss_sampling_steps: Number(e.target.value)})} className="accent-accent-lavender" />
-             </div>
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-               <label className="text-[9px] text-text-muted truncate">Slat Sampling ({piapiParams.slat_sampling_steps})</label>
-               <input type="range" min="10" max="50" value={piapiParams.slat_sampling_steps} onChange={e => setPiapiParams({...piapiParams, slat_sampling_steps: Number(e.target.value)})} className="accent-accent-lavender" />
-             </div>
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-               <label className="text-[9px] text-text-muted truncate">SS Guidance ({piapiParams.ss_guidance_strength})</label>
-               <input type="range" min="0" max="10" step="0.5" value={piapiParams.ss_guidance_strength} onChange={e => setPiapiParams({...piapiParams, ss_guidance_strength: Number(e.target.value)})} className="accent-accent-lavender" />
-             </div>
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-               <label className="text-[9px] text-text-muted truncate">Slat Guidance ({piapiParams.slat_guidance_strength})</label>
-               <input type="range" min="0" max="10" step="0.5" value={piapiParams.slat_guidance_strength} onChange={e => setPiapiParams({...piapiParams, slat_guidance_strength: Number(e.target.value)})} className="accent-accent-lavender" />
-             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Text Prompt */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <label className="text-[10px] font-medium text-text-muted tracking-wider uppercase">
-          Text Prompt
-        </label>
+      {/* Prompt */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label style={labelStyle}>Text Prompt</label>
         <textarea
           id="ai-prompt-input"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder='e.g., "Stealth fighter jet with swept wings"'
-          style={{ width: '100%', height: '80px', padding: '8px 12px' }}
-          className="bg-bg-primary border border-border-default rounded-md text-xs text-text-primary placeholder:text-text-muted/50 resize-none focus:outline-none focus:border-accent-lavender/50 transition-colors duration-200"
           disabled={isGenerating}
+          style={{
+            width: '100%',
+            height: '80px',
+            padding: '10px 12px',
+            backgroundColor: 'var(--bg-base)',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            fontSize: '12px',
+            color: 'var(--text-primary)',
+            resize: 'none',
+            outline: 'none',
+            fontFamily: 'inherit',
+            transition: 'border-color 0.15s ease',
+          }}
+          onFocus={(e) => e.currentTarget.style.borderColor = 'var(--accent-purple)'}
+          onBlur={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
         />
       </div>
 
-      {/* Image Upload Zone */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <label className="text-[10px] font-medium text-text-muted tracking-wider uppercase">
-          Sketch Upload
-        </label>
+      {/* Image Upload */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label style={labelStyle}>Image Upload</label>
         <div
-          style={{ padding: '16px' }}
-          className={`
-            relative border-2 border-dashed rounded-lg text-center cursor-pointer
-            transition-all duration-200 group
-            ${
-              uploadedFile
-                ? 'border-accent-lavender/40 bg-accent-lavender/5'
-                : 'border-border-default hover:border-accent-lavender/30 hover:bg-bg-hover'
-            }
-          `}
           onClick={() => fileInputRef.current?.click()}
           onDrop={handleFileDrop}
           onDragOver={(e) => e.preventDefault()}
+          style={{
+            padding: '16px',
+            border: `2px dashed ${uploadedFile ? 'var(--accent-purple)' : 'var(--border)'}`,
+            borderRadius: '8px',
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+            backgroundColor: uploadedFile ? 'rgba(139, 111, 255, 0.05)' : 'transparent',
+          }}
+          onMouseEnter={(e) => { if (!uploadedFile) e.currentTarget.style.borderColor = 'var(--accent-purple)' }}
+          onMouseLeave={(e) => { if (!uploadedFile) e.currentTarget.style.borderColor = 'var(--border)' }}
         >
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            className="hidden"
+            style={{ display: 'none' }}
             onChange={handleFileDrop}
           />
-
           {uploadedFile ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C5BAFF" strokeWidth="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-              </svg>
-              <span className="text-xs text-accent-lavender truncate max-w-[180px]">
+              <span style={{ fontSize: '12px', color: 'var(--accent-purple)' }}>📎</span>
+              <span style={{ fontSize: '11px', color: 'var(--accent-purple)', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {uploadedFile.name}
               </span>
               <button
-                style={{ marginLeft: '4px' }}
-                className="text-text-muted hover:text-danger text-xs cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setUploadedFile(null)
-                }}
+                onClick={(e) => { e.stopPropagation(); setUploadedFile(null) }}
+                style={{ marginLeft: '4px', color: 'var(--text-muted)', cursor: 'pointer', border: 'none', background: 'none', fontSize: '12px', fontFamily: 'inherit' }}
               >
                 ✕
               </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <svg
-                width="24" height="24" viewBox="0 0 24 24" fill="none"
-                style={{ margin: '0 auto' }}
-                className="opacity-30 group-hover:opacity-60 transition-opacity"
-                stroke="currentColor" strokeWidth="1.5"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-              <p className="text-[10px] text-text-muted">
-                Drop a 2D sketch or <span className="text-accent-lavender">browse</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+              <span style={{ fontSize: '20px', opacity: 0.3 }}>📤</span>
+              <p style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                Drop an image or <span style={{ color: 'var(--accent-purple)' }}>browse</span>
               </p>
             </div>
           )}
         </div>
       </div>
 
+      {/* Provider Selection */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label style={labelStyle}>AI Provider</label>
+        <select
+          value={provider}
+          onChange={(e) => setProvider(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '8px 12px',
+            backgroundColor: 'var(--bg-base)',
+            border: '1px solid var(--border)',
+            borderRadius: '6px',
+            fontSize: '11px',
+            color: 'var(--text-primary)',
+            outline: 'none',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            transition: 'border-color 0.15s ease',
+          }}
+        >
+          <option value="piapi">🔷 PiAPI Trellis</option>
+          <option value="hf">🤗 Hugging Face (Hunyuan3D)</option>
+          <option value="tripo">⭐ Tripo3D (Enterprise)</option>
+        </select>
+      </div>
+
+      {/* PiAPI Params */}
+      {provider === 'piapi' && (
+        <div style={{
+          display: 'flex', flexDirection: 'column', gap: '8px',
+          padding: '10px',
+          backgroundColor: 'var(--bg-surface)',
+          borderRadius: '8px',
+          border: '1px solid var(--border)',
+        }}>
+          <label style={{ ...labelStyle, color: 'var(--accent-blue)' }}>Quality Parameters</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            {[
+              { key: 'ss_sampling_steps', label: 'SS Sampling', min: 10, max: 50, step: 1 },
+              { key: 'slat_sampling_steps', label: 'Slat Sampling', min: 10, max: 50, step: 1 },
+              { key: 'ss_guidance_strength', label: 'SS Guidance', min: 0, max: 10, step: 0.5 },
+              { key: 'slat_guidance_strength', label: 'Slat Guidance', min: 0, max: 10, step: 0.5 },
+            ].map(({ key, label, min, max, step }) => (
+              <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <label style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{label} ({piapiParams[key]})</label>
+                <input
+                  type="range" min={min} max={max} step={step}
+                  value={piapiParams[key]}
+                  onChange={e => setPiapiParams({...piapiParams, [key]: Number(e.target.value)})}
+                  style={{ width: '100%', accentColor: 'var(--accent-blue)' }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Generate Button */}
       <button
         id="ai-generate-btn"
         onClick={handleGenerate}
-        disabled={isGenerating || (!prompt.trim() && !uploadedFile)}
-        style={{ width: '100%', padding: '10px 0' }}
-        className={`
-          rounded-lg text-xs font-semibold tracking-wider uppercase
-          transition-all duration-300 cursor-pointer
-          ${
-            isGenerating
-              ? 'bg-accent-lavender/20 text-accent-lavender cursor-wait'
-              : prompt.trim() || uploadedFile
-              ? 'bg-gradient-to-r from-accent-lavender/80 to-accent-teal/80 text-white hover:from-accent-lavender hover:to-accent-teal shadow-lg hover:shadow-accent-lavender/20'
-              : 'bg-bg-hover text-text-muted cursor-not-allowed'
-          }
-        `}
+        disabled={isGenerating || !canGenerate}
+        style={{
+          width: '100%',
+          padding: '12px 0',
+          borderRadius: '8px',
+          fontSize: '11px',
+          fontWeight: 600,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          border: 'none',
+          cursor: isGenerating ? 'wait' : canGenerate ? 'pointer' : 'not-allowed',
+          transition: 'all 0.2s ease',
+          fontFamily: 'inherit',
+          background: isGenerating
+            ? 'rgba(139, 111, 255, 0.15)'
+            : canGenerate
+              ? 'linear-gradient(135deg, var(--accent-purple), var(--accent-blue))'
+              : 'var(--bg-surface)',
+          color: isGenerating
+            ? 'var(--accent-purple)'
+            : canGenerate
+              ? 'white'
+              : 'var(--text-muted)',
+          boxShadow: canGenerate && !isGenerating ? '0 4px 16px rgba(74, 158, 255, 0.2)' : 'none',
+        }}
       >
         {isGenerating ? (
           <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            <span style={{ width: '12px', height: '12px', animation: 'spin 0.8s linear infinite' }} className="border-2 border-accent-lavender/30 border-t-accent-lavender rounded-full" />
+            <span style={{
+              width: '12px', height: '12px',
+              border: '2px solid rgba(139,111,255,0.3)',
+              borderTopColor: 'var(--accent-purple)',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite',
+              display: 'inline-block',
+            }} />
             Generating...
           </span>
         ) : (
-          '⚡ Generate Model'
+          '⚡ Generate 3D Model'
         )}
       </button>
 
       {/* Status */}
       {generationStatus && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px' }} className="bg-bg-primary rounded-lg border border-accent-lavender/20 animate-fade-in">
-          <div style={{ width: '6px', height: '6px' }} className="rounded-full bg-accent-lavender animate-pulse-glow" />
-          <span className="text-[11px] text-accent-lavender font-mono">
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '8px', padding: '10px',
+          backgroundColor: 'var(--bg-base)', borderRadius: '8px',
+          border: '1px solid rgba(139, 111, 255, 0.2)',
+          animation: 'fadeIn 0.15s ease-out forwards',
+        }}>
+          <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent-purple)', animation: 'pulseGlow 1.5s ease-in-out infinite' }} />
+          <span style={{ fontSize: '10px', color: 'var(--accent-purple)', fontFamily: "'SF Mono', 'Fira Code', monospace" }}>
             {generationStatus}
           </span>
         </div>
       )}
 
       {/* Quick Presets */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '8px' }} className="border-t border-border-subtle">
-        <span className="text-[10px] font-medium text-text-muted tracking-wider uppercase">
-          Quick Presets
-        </span>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-          {['Stealth Jet', 'Cargo Drone', 'Space Shuttle', 'Rocket Body'].map(
-            (preset) => (
-              <button
-                key={preset}
-                style={{ padding: '6px 8px' }}
-                className="text-[10px] text-text-secondary bg-bg-primary rounded border border-border-subtle hover:border-accent-lavender/30 hover:text-accent-lavender transition-all duration-150 cursor-pointer"
-                onClick={() => setPrompt(preset)}
-              >
-                {preset}
-              </button>
-            )
-          )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border)' }}>
+        <span style={labelStyle}>Quick Presets</span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {presets.map((preset) => (
+            <button
+              key={preset}
+              onClick={() => setPrompt(preset)}
+              style={{
+                padding: '5px 10px',
+                fontSize: '10px',
+                color: 'var(--text-secondary)',
+                backgroundColor: 'var(--bg-base)',
+                borderRadius: '12px',
+                border: '1px solid var(--border)',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                fontFamily: 'inherit',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-purple)'; e.currentTarget.style.color = 'var(--accent-purple)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+            >
+              {preset}
+            </button>
+          ))}
         </div>
       </div>
     </div>

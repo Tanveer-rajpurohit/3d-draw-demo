@@ -13,75 +13,99 @@ export default function Toolbar() {
     { id: 'scale', label: 'Scale', shortcut: 'R', icon: ScaleIcon },
   ]
 
+  const btnStyle = (isActive) => ({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '32px',
+    height: '32px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    border: 'none',
+    outline: 'none',
+    transition: 'all 0.15s ease',
+    backgroundColor: isActive ? 'var(--accent-blue)' : 'transparent',
+    color: isActive ? 'white' : 'var(--text-muted)',
+    fontFamily: 'inherit',
+  })
+
   return (
     <>
-      {/* Center toolbar (translate/rotate/scale) */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-0.5 bg-bg-secondary/95 backdrop-blur-md border border-border-subtle rounded-lg p-0.5 shadow-2xl z-10">
+      {/* Center transform toolbar */}
+      <div style={{
+        position: 'absolute',
+        bottom: '100px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '2px',
+        backgroundColor: 'rgba(19, 19, 24, 0.92)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid var(--border)',
+        borderRadius: '10px',
+        padding: '4px',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+        zIndex: 15,
+      }}>
         {modes.map(({ id, label, shortcut, icon: Icon }) => (
           <button
             key={id}
             id={`toolbar-${id}`}
             onClick={() => setTransformMode(id)}
             title={`${label} (${shortcut})`}
-            className={`flex items-center justify-center w-8 h-8 rounded cursor-pointer transition-all duration-200
-              ${transformMode === id
-                ? 'bg-[#0088ff] text-white'
-                : 'text-text-muted hover:text-text-secondary hover:bg-bg-hover'
-              }`}
+            style={btnStyle(transformMode === id)}
+            onMouseEnter={(e) => { if (transformMode !== id) e.currentTarget.style.backgroundColor = 'var(--bg-panel-hover)' }}
+            onMouseLeave={(e) => { if (transformMode !== id) e.currentTarget.style.backgroundColor = 'transparent' }}
           >
             <Icon active={transformMode === id} />
           </button>
         ))}
 
+        {/* Separator */}
+        <div style={{ width: '1px', height: '20px', backgroundColor: 'var(--border)', margin: '0 2px' }} />
+
         {/* Focus button */}
-        <div className="w-px h-5 bg-border-subtle mx-0.5" />
-        <button className="flex items-center justify-center w-8 h-8 rounded text-text-muted hover:text-text-secondary hover:bg-bg-hover cursor-pointer" title="Focus selected">
+        <button
+          style={btnStyle(false)}
+          title="Focus selected"
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-panel-hover)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="3" />
             <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
           </svg>
         </button>
-        <button className="flex items-center justify-center w-8 h-8 rounded text-text-muted hover:text-text-secondary hover:bg-bg-hover cursor-pointer" title="Fit all">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-          </svg>
-        </button>
       </div>
 
-      {/* Bottom bar (play/pause/stop + timeline) */}
-      <div className="absolute bottom-0 left-0 right-0 h-8 bg-bg-secondary border-t border-border-subtle flex items-center px-3 gap-2 z-10 select-none">
-        {/* Play controls */}
-        <button className="text-text-muted hover:text-text-primary cursor-pointer" title="Play">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,0 12,6 2,12" /></svg>
-        </button>
-        <button className="text-text-muted hover:text-text-primary cursor-pointer" title="Pause">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="1" y="0" width="3" height="12"/><rect x="8" y="0" width="3" height="12"/></svg>
-        </button>
-        <button className="text-text-muted hover:text-text-primary cursor-pointer" title="Stop">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="1" y="1" width="10" height="10"/></svg>
-        </button>
-
-        <div className="w-px h-4 bg-border-subtle" />
-
-        {/* Time display */}
-        <span className="text-[10px] font-mono text-text-muted">0.00 / 0.00</span>
-
-        <div className="w-px h-4 bg-border-subtle" />
-
-        {/* Time scale */}
-        <span className="text-[10px] text-text-muted">Time Scale</span>
-        <span className="text-[10px] font-mono text-[#0088ff]">1.00</span>
-
-        {/* Right side info */}
-        <div className="ml-auto flex items-center gap-2">
-          <span className={`text-[10px] font-mono ${selectedIds.length > 0 ? 'text-accent-teal' : 'text-text-muted'}`}>
-            {selectedIds.length > 1
-              ? `${selectedIds.length} objects selected`
-              : selectedIds.length === 1
-                ? `● ${sceneObjects.find(o => o.id === selectedIds[0])?.name || 'Object'}`
-                : `${sceneObjects.length} objects`}
-          </span>
-        </div>
+      {/* Bottom status bar */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '28px',
+        backgroundColor: 'var(--bg-panel)',
+        borderTop: '1px solid var(--border)',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 12px',
+        gap: '8px',
+        zIndex: 15,
+        userSelect: 'none',
+      }}>
+        <span style={{
+          fontSize: '10px',
+          fontFamily: "'SF Mono', 'Fira Code', monospace",
+          color: selectedIds.length > 0 ? 'var(--accent-blue)' : 'var(--text-muted)',
+        }}>
+          {selectedIds.length > 1
+            ? `${selectedIds.length} objects selected`
+            : selectedIds.length === 1
+              ? `● ${sceneObjects.find(o => o.id === selectedIds[0])?.name || 'Object'}`
+              : `${sceneObjects.length} objects in scene`}
+        </span>
       </div>
     </>
   )

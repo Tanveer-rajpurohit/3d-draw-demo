@@ -3,17 +3,17 @@ import useStore from '../store/store'
 
 export default function ViewportInfo() {
   const sceneObjects = useStore((s) => s.sceneObjects)
+  const materialMode = useStore((s) => s.materialMode)
 
-  const totalObjects = sceneObjects.length + 1 // +1 for CSG
-  // Rough vertex estimates
+  const totalObjects = sceneObjects.length
   const vertexEstimates = {
     box: 24, sphere: 1056, cylinder: 192, cone: 192, torus: 576,
     plane: 4, capsule: 320, circle: 96, dodecahedron: 60,
     icosahedron: 42, octahedron: 24, tetrahedron: 12, ring: 128,
-    torusknot: 1536, lathe: 144, tube: 1040, generated: 252,
+    torusknot: 1536, lathe: 144, tube: 1040, gltf: 500,
   }
 
-  let totalVertices = 96 + 24 // CSG fuselage base
+  let totalVertices = 0
   let totalTriangles = 0
   sceneObjects.forEach((obj) => {
     const v = vertexEstimates[obj.type] || 24
@@ -22,11 +22,20 @@ export default function ViewportInfo() {
   })
 
   return (
-    <div className="absolute bottom-14 left-3 text-[11px] font-mono text-text-muted leading-relaxed pointer-events-none z-10 select-none">
-      <div>{totalObjects} object{totalObjects !== 1 ? 's' : ''}</div>
-      <div>{totalVertices} vertices</div>
-      <div>{totalTriangles} triangles</div>
-      <div>0.50 render time</div>
+    <div style={{
+      position: 'absolute',
+      bottom: '100px',
+      left: '12px',
+      fontFamily: "'SF Mono', 'Fira Code', monospace",
+      fontSize: '10px',
+      color: 'var(--text-muted)',
+      lineHeight: 1.6,
+      pointerEvents: 'none',
+      userSelect: 'none',
+      zIndex: 15,
+    }}>
+      <div>{totalObjects} objects  {totalVertices} vertices  {totalTriangles} triangles</div>
+      <div>0.5ms  |  {materialMode} mode</div>
     </div>
   )
 }

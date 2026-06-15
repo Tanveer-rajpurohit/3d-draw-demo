@@ -3,8 +3,7 @@ import Menubar from './components/Menubar'
 import Sidebar from './components/Sidebar'
 import Viewport from './components/Viewport'
 import Toolbar from './components/Toolbar'
-import RightPanel from './components/RightPanel'
-import ViewportInfo from './components/ViewportInfo'
+import ViewportOverlay from './components/ViewportOverlay'
 import ShortcutsModal from './components/ShortcutsModal'
 import useStore from './store/store'
 
@@ -51,24 +50,27 @@ export default function App() {
   }, [selectedIds, removePrimitive, setTransformMode])
 
   return (
-    <div className="flex flex-col w-full h-full bg-bg-primary">
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'var(--bg-base)',
+    }}>
       {/* Top Menu Bar */}
       <Menubar />
 
       {/* Main Content Area */}
-      <div className="flex flex-1 min-h-0">
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {/* Left Sidebar */}
         <Sidebar />
 
         {/* 3D Viewport (center) */}
-        <div className="relative flex-1 min-w-0">
+        <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
           <Viewport />
           <Toolbar />
-          <ViewportInfo />
+          <ViewportOverlay />
         </div>
-
-        {/* Right Panel */}
-        <RightPanel />
       </div>
 
       {/* Modals */}

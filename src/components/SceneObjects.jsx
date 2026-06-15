@@ -13,7 +13,7 @@ export default function SceneObjects() {
   const updateObject = useStore((s) => s.updateObject)
   const transformMode = useStore((s) => s.transformMode)
   const saveHistory = useStore((s) => s.saveHistory)
-  const renderMode = useStore((s) => s.renderMode)
+  const materialMode = useStore((s) => s.materialMode)
 
   return (
     <group>
@@ -27,14 +27,14 @@ export default function SceneObjects() {
           transformMode={transformMode}
           updateObject={updateObject}
           saveHistory={saveHistory}
-          renderMode={renderMode}
+          materialMode={materialMode}
         />
       ))}
     </group>
   )
 }
 
-/* ─── Individual Scene Object ─── */
+/* ─── Geometry Factory ─── */
 function getGeometryElement(type, args) {
   switch (type) {
     case 'box': return <boxGeometry args={args} />
@@ -58,8 +58,6 @@ function getGeometryElement(type, args) {
     case 'spotlight': return <coneGeometry args={[0.2, 0.4, 8]} />
     case 'hemispherelight': return <sphereGeometry args={[0.2, 8, 8]} />
     case 'ambientlight': return <sphereGeometry args={[0.2, 8, 8]} />
-    case 'perspectivecamera': return <boxGeometry args={[0.2, 0.2, 0.4]} />
-    case 'orthographiccamera': return <boxGeometry args={[0.2, 0.2, 0.4]} />
     default: return <boxGeometry args={[1, 1, 1]} />
   }
 }
@@ -72,12 +70,37 @@ function getLightOrCameraComponent(obj) {
     case 'spotlight': return <spotLight intensity={args[1]} distance={args[2]} angle={args[3]} penumbra={args[4]} decay={args[5]} color={obj.color} castShadow />
     case 'hemispherelight': return <hemisphereLight intensity={args[2]} color={args[0]} groundColor={args[1]} />
     case 'ambientlight': return <ambientLight intensity={args[1]} color={obj.color} />
-    case 'perspectivecamera': return <perspectiveCamera fov={args[0]} aspect={args[1]} near={args[2]} far={args[3]} />
-    case 'orthographiccamera': return <orthographicCamera left={args[0]} right={args[1]} top={args[2]} bottom={args[3]} near={args[4]} far={args[5]} />
     default: return null
   }
 }
 
+/* ─── Material Factory based on materialMode ─── */
+function getMaterialElement(materialMode, color) {
+  const baseColor = color || '#aaaaaa'
+  switch (materialMode) {
+    case 'wireframe':
+      return <meshBasicMaterial color="#4a9eff" wireframe />
+    case 'clay':
+      return <meshStandardMaterial color="#c8c8c8" roughness={0.9} metalness={0} />
+    case 'solid':
+      return <meshStandardMaterial color={baseColor} roughness={0.8} metalness={0.1} />
+    case 'normals':
+      return <meshNormalMaterial />
+    case 'xray':
+      return <meshBasicMaterial color="#4a9eff" transparent opacity={0.2} depthWrite={false} />
+    case 'matcap_a':
+      return <meshMatcapMaterial color={baseColor} />
+    case 'matcap_b':
+      return <meshMatcapMaterial color="#ddbbff" />
+    case 'scifi':
+      // SciFi mode renders in the component itself (dual mesh)
+      return null
+    default:
+      return <meshStandardMaterial color={baseColor} roughness={0.8} metalness={0.1} />
+  }
+}
+
+/* ─── GLTF Model Loader ─── */
 function GltfModel({ url, color }) {
   const [scene, setScene] = React.useState(null)
   const [error, setError] = React.useState(null)
@@ -86,7 +109,6 @@ function GltfModel({ url, color }) {
     let isMounted = true
     const loader = new GLTFLoader()
     
-    // Add Draco support just in case the imported model is compressed
     const dracoLoader = new DRACOLoader()
     dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/')
     loader.setDRACOLoader(dracoLoader)
@@ -111,9 +133,6 @@ function GltfModel({ url, color }) {
   const clonedScene = React.useMemo(() => {
     if (!scene) return null
     const clone = scene.clone()
-    
-    // Override the imported materials with a simple editor material
-    // so the user can change its color freely via the Right Panel!
     clone.traverse((child) => {
       if (child.isMesh) {
         child.material = new THREE.MeshStandardMaterial({
@@ -139,7 +158,7 @@ function GltfModel({ url, color }) {
     return (
       <mesh>
         <sphereGeometry args={[0.5, 16, 16]} />
-        <meshBasicMaterial color="#8DBCC7" wireframe />
+        <meshBasicMaterial color="#4a9eff" wireframe />
       </mesh>
     )
   }
@@ -147,6 +166,37 @@ function GltfModel({ url, color }) {
   return <primitive object={clonedScene} />
 }
 
+/* ─── SciFi dual-mesh wrapper ─── */
+function SciFiMesh({ children, geometry }) {
+  return (
+    <group>
+      {/* Solid blue-transparent mesh */}
+      <mesh>
+        {geometry}
+        <meshPhongMaterial
+          color={0x001a33}
+          emissive={0x002266}
+          emissiveIntensity={0.4}
+          transparent
+          opacity={0.75}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* Wireframe overlay */}
+      <mesh>
+        {geometry}
+        <meshBasicMaterial
+          color={0x00aaff}
+          wireframe
+          transparent
+          opacity={0.35}
+        />
+      </mesh>
+    </group>
+  )
+}
+
+/* ─── Individual Scene Object ─── */
 const SceneObject = React.memo(function SceneObject({
   obj,
   isSelected,
@@ -155,7 +205,7 @@ const SceneObject = React.memo(function SceneObject({
   transformMode,
   updateObject,
   saveHistory,
-  renderMode,
+  materialMode,
 }) {
   const meshRef = useRef()
 
@@ -172,7 +222,6 @@ const SceneObject = React.memo(function SceneObject({
     if (!meshRef.current) return
     if (syncTimeoutRef.current) return
     
-    // Throttle Zustand updates to 10fps to avoid lag, but ensure state is saved.
     syncTimeoutRef.current = setTimeout(() => {
       syncTimeoutRef.current = null
       if (!meshRef.current) return
@@ -192,36 +241,16 @@ const SceneObject = React.memo(function SceneObject({
     return getGeometryElement(obj.type, obj.geometryArgs || [])
   }, [obj.type, obj.geometryArgs])
 
-  // Material based on render mode
   const material = useMemo(() => {
-    const baseColor = obj.color || '#aaaaaa'
-    switch (renderMode) {
-      case 'wireframe':
-        return <meshBasicMaterial color={baseColor} wireframe />
-      case 'normals':
-        return <meshNormalMaterial />
-      case 'depth':
-        return <meshDepthMaterial />
-      case 'flat':
-        return <meshStandardMaterial color={baseColor} roughness={0.8} metalness={0.1} flatShading />
-      case 'matcap':
-        return <meshMatcapMaterial color={baseColor} />
-      case 'uv':
-        return <meshBasicMaterial color="#ff00ff" wireframe />
-      default: // solid
-        return (
-          <meshStandardMaterial
-            color={baseColor}
-            roughness={0.8}
-            metalness={0.1}
-          />
-        )
-    }
-  }, [renderMode, obj.color])
+    return getMaterialElement(materialMode, obj.color)
+  }, [materialMode, obj.color])
 
   if (!obj.visible) return null
 
-  // Special rendering for CSG objects
+  const isSpecial = ['pointlight', 'directionallight', 'spotlight', 'hemispherelight', 'ambientlight'].includes(obj.type)
+  const isSciFi = materialMode === 'scifi' && !isSpecial
+
+  // ─── CSG Rendering ───
   if (obj.type === 'csg') {
     const base = obj.csgData.base;
     const operands = obj.csgData.operands;
@@ -236,14 +265,19 @@ const SceneObject = React.memo(function SceneObject({
           onClick={handleClick}
           castShadow={obj.castShadow}
           receiveShadow={obj.receiveShadow}
-          onUpdate={(self) => {
-            if (self.geometry) {
-              self.geometry.computeBoundingBox()
-              self.geometry.computeBoundingSphere()
-            }
-          }}
         >
-          {material}
+          {isSciFi ? (
+            <meshPhongMaterial
+              color={0x001a33}
+              emissive={0x002266}
+              emissiveIntensity={0.4}
+              transparent
+              opacity={0.75}
+              side={THREE.DoubleSide}
+            />
+          ) : (
+            material || <meshStandardMaterial color={obj.color || '#aaaaaa'} roughness={0.8} metalness={0.1} />
+          )}
           <Geometry useGroups={false}>
             <Base position={base.position} rotation={base.rotation} scale={base.scale}>
               {getGeometryElement(base.type, base.geometryArgs || [])}
@@ -271,11 +305,7 @@ const SceneObject = React.memo(function SceneObject({
             size={0.7}
             onObjectChange={handleObjectChange}
             onDraggingChanged={(e) => {
-              const orbit = meshRef.current?.parent?.parent?.parent?.children?.find(c => c.type === 'OrbitControls')
-              if (orbit) orbit.enabled = !e.value
-              if (e.value && saveHistory) {
-                saveHistory()
-              }
+              if (e.value && saveHistory) saveHistory()
             }}
           />
         )}
@@ -283,8 +313,7 @@ const SceneObject = React.memo(function SceneObject({
     )
   }
 
-  const isSpecial = ['pointlight', 'directionallight', 'spotlight', 'hemispherelight', 'ambientlight', 'perspectivecamera', 'orthographiccamera'].includes(obj.type)
-
+  // ─── Standard + SciFi Rendering ───
   return (
     <group>
       <mesh
@@ -302,8 +331,17 @@ const SceneObject = React.memo(function SceneObject({
           <>
             {isSpecial ? (
               <meshBasicMaterial color={obj.color} wireframe />
+            ) : isSciFi ? (
+              <meshPhongMaterial
+                color={0x001a33}
+                emissive={0x002266}
+                emissiveIntensity={0.4}
+                transparent
+                opacity={0.75}
+                side={THREE.DoubleSide}
+              />
             ) : (
-              material
+              material || <meshStandardMaterial color={obj.color || '#aaaaaa'} roughness={0.8} metalness={0.1} />
             )}
             {geometry}
             {isSpecial && getLightOrCameraComponent(obj)}
@@ -315,6 +353,23 @@ const SceneObject = React.memo(function SceneObject({
         )}
       </mesh>
 
+      {/* SciFi wireframe overlay (second mesh) */}
+      {isSciFi && obj.type !== 'gltf' && !isSpecial && (
+        <mesh
+          position={obj.position}
+          rotation={obj.rotation}
+          scale={obj.scale}
+        >
+          {getGeometryElement(obj.type, obj.geometryArgs || [])}
+          <meshBasicMaterial
+            color={0x00aaff}
+            wireframe
+            transparent
+            opacity={0.35}
+          />
+        </mesh>
+      )}
+
       {isActiveTransform && (
         <TransformControls
           object={meshRef}
@@ -322,11 +377,7 @@ const SceneObject = React.memo(function SceneObject({
           size={0.7}
           onObjectChange={handleObjectChange}
           onDraggingChanged={(e) => {
-            const orbit = meshRef.current?.parent?.parent?.parent?.children?.find(c => c.type === 'OrbitControls')
-            if (orbit) orbit.enabled = !e.value
-            if (e.value && saveHistory) {
-              saveHistory()
-            }
+            if (e.value && saveHistory) saveHistory()
           }}
         />
       )}
