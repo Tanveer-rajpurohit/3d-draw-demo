@@ -97,9 +97,9 @@ function SceneExporter() {
     const handleExport = (e) => {
       const isBinary = e.detail === 'glb'
       const exporter = new GLTFExporter()
-      
+      const userGroup = scene.getObjectByName('UserSceneObjects') || scene
       exporter.parse(
-        scene,
+        userGroup,
         (gltf) => {
           const blob = new Blob([isBinary ? gltf : JSON.stringify(gltf, null, 2)], {
             type: isBinary ? 'application/octet-stream' : 'text/plain',

@@ -18,7 +18,7 @@ export default function SceneObjects() {
   const materialMode = useStore((s) => s.materialMode)
 
   return (
-    <group>
+    <group name="UserSceneObjects">
       {sceneObjects.map((obj) => (
         <SceneObject
           key={obj.id}

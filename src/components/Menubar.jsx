@@ -29,6 +29,7 @@ export default function Menubar() {
   const pasteClipboard = useStore((s) => s.pasteClipboard)
   const removePrimitive = useStore((s) => s.removePrimitive)
   const selectedIds = useStore((s) => s.selectedIds)
+  const setSelectedIds = useStore((s) => s.setSelectedIds)
   const setShowShortcuts = useStore((s) => s.setShowShortcuts)
 
   const doAdd = (name) => { setOpenMenu(null); setOpenSub(null); addPrimitive(name.toLowerCase().replace(/\s+/g,'')) }
@@ -47,8 +48,14 @@ export default function Menubar() {
     if(item==='Copy') copySelected()
     if(item==='Paste') pasteClipboard()
     if(item==='Delete Selected') selectedIds.forEach(id=>removePrimitive(id))
-    if(item==='Export GLB') window.dispatchEvent(new CustomEvent('export-scene', { detail: 'glb' }))
-    if(item==='Export GLTF') window.dispatchEvent(new CustomEvent('export-scene', { detail: 'gltf' }))
+    if(item==='Export GLB') {
+      setSelectedIds([])
+      setTimeout(() => window.dispatchEvent(new CustomEvent('export-scene', { detail: 'glb' })), 50)
+    }
+    if(item==='Export GLTF') {
+      setSelectedIds([])
+      setTimeout(() => window.dispatchEvent(new CustomEvent('export-scene', { detail: 'gltf' })), 50)
+    }
   }
 
   const S = {
