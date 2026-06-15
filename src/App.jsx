@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import Menubar from './components/Menubar'
 import Sidebar from './components/Sidebar'
 import Viewport from './components/Viewport'
@@ -19,35 +19,25 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return
+      const tag = e.target.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return
 
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
-        copySelected()
-      }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
-        pasteClipboard()
-      }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
-        undo()
-      }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) {
-        redo()
-      }
-
-      if (e.key === '?') {
-        setShowShortcuts(true)
-      }
-
+      const ctrl = e.ctrlKey || e.metaKey
+      if (ctrl && e.key.toLowerCase() === 'c') { e.preventDefault(); copySelected() }
+      if (ctrl && e.key.toLowerCase() === 'v') { e.preventDefault(); pasteClipboard() }
+      if (ctrl && e.key.toLowerCase() === 'z') { e.preventDefault(); undo() }
+      if (ctrl && e.key.toLowerCase() === 'y') { e.preventDefault(); redo() }
+      if (e.key === '?') setShowShortcuts(true)
       if (e.key === 'Delete' && selectedIds.length > 0) {
         selectedIds.forEach((id) => removePrimitive(id))
       }
-      if (e.key === 'w' || e.key === 'W') setTransformMode('translate')
-      if (e.key === 'e' || e.key === 'E') setTransformMode('rotate')
-      if (e.key === 'r' || e.key === 'R') setTransformMode('scale')
+      if (e.key.toLowerCase() === 'w') setTransformMode('translate')
+      if (e.key.toLowerCase() === 'e') setTransformMode('rotate')
+      if (e.key.toLowerCase() === 'r') setTransformMode('scale')
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedIds, removePrimitive, setTransformMode])
+  }, [selectedIds, removePrimitive, setTransformMode, copySelected, pasteClipboard, undo, redo, setShowShortcuts])
 
   return (
     <div style={{
@@ -57,23 +47,15 @@ export default function App() {
       height: '100%',
       backgroundColor: 'var(--bg-base)',
     }}>
-      {/* Top Menu Bar */}
       <Menubar />
-
-      {/* Main Content Area */}
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        {/* Left Sidebar */}
         <Sidebar />
-
-        {/* 3D Viewport (center) */}
         <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
           <Viewport />
           <Toolbar />
           <ViewportOverlay />
         </div>
       </div>
-
-      {/* Modals */}
       <ShortcutsModal />
     </div>
   )
