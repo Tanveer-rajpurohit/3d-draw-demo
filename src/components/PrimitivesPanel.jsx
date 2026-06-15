@@ -2,32 +2,32 @@ import React, { useState } from 'react'
 import useStore from '../store/store'
 
 const shapes = [
-  { id: 'box', label: 'Box', icon: '⬡' },
-  { id: 'cylinder', label: 'Cylinder', icon: '⏣' },
-  { id: 'sphere', label: 'Sphere', icon: '◉' },
-  { id: 'cone', label: 'Cone', icon: '△' },
-  { id: 'plane', label: 'Plane', icon: '▭' },
-  { id: 'torus', label: 'Torus', icon: '◎' },
-  { id: 'capsule', label: 'Capsule', icon: '⬭' },
-  { id: 'ring', label: 'Ring', icon: '○' },
-  { id: 'torusknot', label: 'TorusKnot', icon: '∞' },
+  { id: 'box', label: 'Box', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg> },
+  { id: 'cylinder', label: 'Cylinder', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg> },
+  { id: 'sphere', label: 'Sphere', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/></svg> },
+  { id: 'cone', label: 'Cone', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L3 20h18L12 2z"/></svg> },
+  { id: 'plane', label: 'Plane', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="2,16 22,16 18,8 6,8"/></svg> },
+  { id: 'torus', label: 'Torus', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg> },
+  { id: 'capsule', label: 'Capsule', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="2" width="14" height="20" rx="7"/></svg> },
+  { id: 'ring', label: 'Ring', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="9"/></svg> },
+  { id: 'torusknot', label: 'TorusKnot', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 12a4 4 0 1 0 8 0 4 4 0 1 0-8 0z"/><path d="M12 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8z"/></svg> },
 ]
 
 const aircraftParts = [
-  { label: 'Fuselage', type: 'cylinder', scale: [0.4, 0.4, 3], rotation: [Math.PI / 2, 0, 0], position: [0, 1, 0], icon: '━' },
-  { label: 'Delta Wing', type: 'box', scale: [3, 0.05, 1.5], rotation: [0, 0.785, 0], position: [0, 1, 0], icon: '◁' },
-  { label: 'Swept Wing', type: 'box', scale: [2.5, 0.05, 1.2], rotation: [0, 0.4, 0], position: [1.5, 1, 0], icon: '◀' },
-  { label: 'Jet Engine', type: 'cylinder', scale: [0.3, 0.3, 1.2], rotation: [Math.PI / 2, 0, 0], position: [-1, 0.8, 0.8], icon: '⊚' },
-  { label: 'Tail Fin', type: 'box', scale: [0.05, 0.8, 0.6], rotation: [0, 0, 0], position: [0, 1.5, -1.5], icon: '▏' },
-  { label: 'Sensor Pod', type: 'sphere', scale: [0.3, 0.3, 0.5], rotation: [0, 0, 0], position: [0, 0.5, 1.5], icon: '◦' },
-  { label: 'Fuel Tank', type: 'cylinder', scale: [0.2, 0.2, 0.8], rotation: [Math.PI / 2, 0, 0], position: [1, 0.5, 0], icon: '▮' },
-  { label: 'Landing Gear', type: 'cylinder', scale: [0.05, 0.05, 0.6], rotation: [0, 0, 0], position: [0, 0.3, 0], icon: '│' },
+  { label: 'Fuselage', type: 'cylinder', scale: [0.4, 0.4, 3], rotation: [Math.PI / 2, 0, 0], position: [0, 1, 0], icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="4" y="10" width="16" height="4" rx="2"/></svg> },
+  { label: 'Delta Wing', type: 'box', scale: [3, 0.05, 1.5], rotation: [0, 0.785, 0], position: [0, 1, 0], icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="12,4 2,20 22,20"/></svg> },
+  { label: 'Swept Wing', type: 'box', scale: [2.5, 0.05, 1.2], rotation: [0, 0.4, 0], position: [1.5, 1, 0], icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="4,4 20,8 20,16 4,12"/></svg> },
+  { label: 'Jet Engine', type: 'cylinder', scale: [0.3, 0.3, 1.2], rotation: [Math.PI / 2, 0, 0], position: [-1, 0.8, 0.8], icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg> },
+  { label: 'Tail Fin', type: 'box', scale: [0.05, 0.8, 0.6], rotation: [0, 0, 0], position: [0, 1.5, -1.5], icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="8,22 8,6 16,2 16,22"/></svg> },
+  { label: 'Sensor Pod', type: 'sphere', scale: [0.3, 0.3, 0.5], rotation: [0, 0, 0], position: [0, 0.5, 1.5], icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> },
+  { label: 'Fuel Tank', type: 'cylinder', scale: [0.2, 0.2, 0.8], rotation: [Math.PI / 2, 0, 0], position: [1, 0.5, 0], icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="6" y="4" width="12" height="16" rx="6"/></svg> },
+  { label: 'Landing Gear', type: 'cylinder', scale: [0.05, 0.05, 0.6], rotation: [0, 0, 0], position: [0, 0.3, 0], icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="12" y1="4" x2="12" y2="18"/><circle cx="12" cy="20" r="2"/></svg> },
 ]
 
 const lightTypes = [
-  { id: 'pointlight', label: 'Point', icon: '💡' },
-  { id: 'directionallight', label: 'Dir.', icon: '☀' },
-  { id: 'spotlight', label: 'Spot', icon: '🔦' },
+  { id: 'pointlight', label: 'Point', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg> },
+  { id: 'directionallight', label: 'Dir.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 3v14"/><path d="M7 12l5 5 5-5"/></svg> },
+  { id: 'spotlight', label: 'Spot', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="12,2 22,22 2,22"/></svg> },
 ]
 
 /* ── CSG Overlap Icon (two overlapping squares, stroke) ── */
@@ -122,7 +122,7 @@ export default function PrimitivesPanel() {
   return (
     <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
-      {/* ═══ BASIC SHAPES ═══ */}
+
       <Section title="Basic Shapes" isOpen={open.shapes} toggle={() => toggle('shapes')} sectionHdr={sectionHdr} chevron={chevron}>
         <div style={{ padding: '8px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
           {shapes.map((s) => (
@@ -137,8 +137,8 @@ export default function PrimitivesPanel() {
         </div>
       </Section>
 
-      {/* ═══ AIRCRAFT PARTS ═══ */}
-      <Section title="Aircraft Parts" isOpen={open.aircraft} toggle={() => toggle('aircraft')} sectionHdr={sectionHdr} chevron={chevron} prefix="✈">
+
+      <Section title="Aircraft Parts" isOpen={open.aircraft} toggle={() => toggle('aircraft')} sectionHdr={sectionHdr} chevron={chevron} prefix={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.6L3 8l6 4-3.5 3.5L3 15l-1.5 1.5 5 1 1 5L9 21l-.5-2.5 3.5-3.5 4 6c.4.6.9.5 1.1 0l1.2-3.8z"/></svg>}>
         <div style={{ padding: '8px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
           {aircraftParts.map((p) => (
             <button key={p.label} style={gridBtn} title={`Add ${p.label}`}
@@ -153,7 +153,7 @@ export default function PrimitivesPanel() {
         </div>
       </Section>
 
-      {/* ═══ CSG BOOLEAN — ALWAYS VISIBLE ═══ */}
+
       <Section
         title="CSG Boolean"
         isOpen={open.csg}
@@ -236,8 +236,8 @@ export default function PrimitivesPanel() {
         </div>
       </Section>
 
-      {/* ═══ LIGHTS ═══ */}
-      <Section title="Lights" isOpen={open.lights} toggle={() => toggle('lights')} sectionHdr={sectionHdr} chevron={chevron} prefix="💡">
+
+      <Section title="Lights" isOpen={open.lights} toggle={() => toggle('lights')} sectionHdr={sectionHdr} chevron={chevron} prefix={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>}>
         <div style={{ padding: '8px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
           {lightTypes.map((l) => (
             <button key={l.id} onClick={() => addPrimitive(l.id)} style={gridBtn} title={`Add ${l.label}`}
@@ -254,7 +254,7 @@ export default function PrimitivesPanel() {
   )
 }
 
-/* ═══ Collapsible Section wrapper ═══ */
+
 function Section({ title, isOpen, toggle, sectionHdr, chevron, children, prefix, iconEl }) {
   return (
     <div style={{ border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden', backgroundColor: 'var(--bg-panel)' }}>

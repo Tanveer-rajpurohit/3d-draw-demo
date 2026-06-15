@@ -60,10 +60,7 @@ export default function Menubar() {
     <div style={S.bar}>
       {/* Logo */}
       <div style={{ display:'flex', alignItems:'center', gap:'8px', marginRight:'28px' }}>
-        <div style={{ width:'22px', height:'22px', background:'linear-gradient(135deg,var(--accent-blue),var(--accent-purple))', borderRadius:'5px', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
-        </div>
-        <span style={{ fontSize:'13px', fontWeight:700, letterSpacing:'1.5px', background:'linear-gradient(90deg,var(--accent-blue),var(--accent-teal))', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>SKYFORGE</span>
+        <span style={{ fontSize:'13px', fontWeight:700, letterSpacing:'0.5px', color:'var(--text-primary)' }}>Airix — AI-Powered Aircraft Design & Fleet Intelligence</span>
       </div>
 
       {/* Menus */}

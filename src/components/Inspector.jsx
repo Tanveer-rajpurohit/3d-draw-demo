@@ -16,8 +16,8 @@ export default function Inspector() {
     return (
       <div style={{
         position:'absolute', top:'8px', right:'8px', width:'200px',
-        backgroundColor:'rgba(19,19,24,.88)', backdropFilter:'blur(12px)',
-        border:'1px solid var(--border)', borderRadius:'8px', padding:'12px', zIndex:15, pointerEvents:'auto',
+        backgroundColor:'rgba(255, 253, 248, 0.92)', backdropFilter:'blur(12px)',
+        border:'1px solid var(--border)', borderRadius:'8px', padding:'12px', zIndex:15, pointerEvents:'auto', boxShadow:'0 2px 12px rgba(0,0,0,.06)'
       }}>
         <p style={{ fontSize:'10px', color:'var(--text-muted)', marginBottom:'8px' }}>Click an object to inspect</p>
         <div style={{ display:'flex', justifyContent:'space-between', fontSize:'10px' }}>
@@ -74,10 +74,11 @@ function InspectorPanel({ obj, updateObject, removePrimitive, saveHistory }) {
   return (
     <div style={{
       position:'absolute', top:'8px', right:'8px', width:'220px',
-      backgroundColor:'rgba(19,19,24,.92)', backdropFilter:'blur(12px)',
+      backgroundColor:'rgba(255, 253, 248, 0.92)', backdropFilter:'blur(12px)',
       border:'1px solid var(--border)', borderRadius:'8px', padding:'12px',
       zIndex:15, display:'flex', flexDirection:'column', gap:'10px',
       animation:'fadeIn .12s ease-out forwards', pointerEvents:'auto',
+      boxShadow:'0 2px 12px rgba(0,0,0,.06)',
     }}>
       <input type="text" value={name}
         onChange={e => { setName(e.target.value); commit('name',e.target.value) }}

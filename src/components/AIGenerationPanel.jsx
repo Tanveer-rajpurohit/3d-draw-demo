@@ -23,8 +23,7 @@ export default function AIGenerationPanel() {
     <div style={{ padding:'14px', display:'flex', flexDirection:'column', gap:'14px' }}>
       {/* Header */}
       <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-        <div style={{ width:'6px', height:'6px', borderRadius:'50%', background:'linear-gradient(135deg,var(--accent-purple),var(--accent-blue))' }}/>
-        <span style={{ fontSize:'11px', fontWeight:600, letterSpacing:'.08em', color:'var(--accent-purple)' }}>AI MODEL GENERATION</span>
+        <span style={{ fontSize:'11px', fontWeight:600, letterSpacing:'.08em', color:'var(--text-primary)' }}>MODEL GENERATION</span>
       </div>
 
       {/* Prompt */}
@@ -49,14 +48,14 @@ export default function AIGenerationPanel() {
           <input ref={fileInputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleFile}/>
           {uploadedFile ? (
             <div style={{ display:'flex', alignItems:'center', gap:'8px', justifyContent:'center' }}>
-              <span style={{ fontSize:'12px', color:'var(--accent-purple)' }}>📎</span>
-              <span style={{ fontSize:'11px', color:'var(--accent-purple)', maxWidth:'140px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{uploadedFile.name}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color:'var(--text-secondary)' }}><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+              <span style={{ fontSize:'11px', color:'var(--text-primary)', maxWidth:'140px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{uploadedFile.name}</span>
               <button onClick={e => { e.stopPropagation(); setUploadedFile(null) }} style={{ marginLeft:'4px', color:'var(--text-muted)', cursor:'pointer', border:'none', background:'none', fontSize:'12px' }}>✕</button>
             </div>
           ) : (
-            <div style={{ display:'flex', flexDirection:'column', gap:'4px', alignItems:'center' }}>
-              <span style={{ fontSize:'20px', opacity:0.3 }}>📤</span>
-              <p style={{ fontSize:'10px', color:'var(--text-muted)' }}>Drop an image or <span style={{ color:'var(--accent-purple)' }}>browse</span></p>
+            <div style={{ display:'flex', flexDirection:'column', gap:'6px', alignItems:'center' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color:'var(--text-muted)' }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <p style={{ fontSize:'10px', color:'var(--text-muted)' }}>Drop an image or <span style={{ color:'var(--text-primary)', textDecoration: 'underline' }}>browse</span></p>
             </div>
           )}
         </div>
@@ -66,9 +65,9 @@ export default function AIGenerationPanel() {
       <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
         <label style={lbl}>AI Provider</label>
         <select value={provider} onChange={e => setProvider(e.target.value)} style={{ ...inputBase, cursor:'pointer', padding:'8px 12px', fontSize:'11px' }}>
-          <option value="piapi">🔷 PiAPI Trellis</option>
-          <option value="hf">🤗 Hugging Face (Hunyuan3D)</option>
-          <option value="tripo">⭐ Tripo3D (Enterprise)</option>
+          <option value="piapi">PiAPI Trellis</option>
+          <option value="hf">Hugging Face (Hunyuan3D)</option>
+          <option value="tripo">Tripo3D</option>
         </select>
       </div>
 
@@ -100,17 +99,15 @@ export default function AIGenerationPanel() {
         width:'100%', padding:'12px 0', borderRadius:'8px', fontSize:'11px', fontWeight:600,
         letterSpacing:'.08em', textTransform:'uppercase', border:'none', fontFamily:'inherit',
         cursor: isGenerating?'wait': canGen?'pointer':'not-allowed',
-        background: isGenerating?'rgba(139,111,255,.15)': canGen?'linear-gradient(135deg,var(--accent-purple),var(--accent-blue))':'var(--bg-surface)',
-        color: isGenerating?'var(--accent-purple)': canGen?'white':'var(--text-muted)',
-        boxShadow: canGen&&!isGenerating ? '0 4px 16px rgba(74,158,255,.2)':'none',
+        background: isGenerating ? 'var(--bg-surface)' : canGen ? 'var(--accent-brand)' : 'var(--bg-surface)',
+        color: isGenerating ? 'var(--text-muted)' : canGen ? '#ffffff' : 'var(--text-muted)',
         transition:'all .2s ease',
       }}>
         {isGenerating ? (
           <span style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'8px' }}>
-            <span style={{ width:'12px', height:'12px', border:'2px solid rgba(139,111,255,.3)', borderTopColor:'var(--accent-purple)', borderRadius:'50%', animation:'spin .8s linear infinite', display:'inline-block' }}/>
             Generating...
           </span>
-        ) : '⚡ Generate 3D Model'}
+        ) : 'Generate 3D Model'}
       </button>
 
       {/* Status */}

@@ -146,6 +146,12 @@ function GltfModel({ url, color, materialMode }) {
   const cloned = React.useMemo(() => {
     if (!scene) return null
     const c = scene.clone()
+    
+    // In diffuse mode, keep the original materials from the GLTF file
+    if (materialMode === 'diffuse') {
+      return c
+    }
+
     const mat = createThreeMaterial(materialMode, color)
     c.traverse((child) => {
       if (child.isMesh) {
