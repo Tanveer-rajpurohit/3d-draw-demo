@@ -7,7 +7,7 @@ const meshItems = [
 ]
 
 const menus = [
-  { label:'File', items:['New Project','Import...','Save','Export GLTF'] },
+  { label:'File', items:['New Project','Import...','Save','Export GLB','Export GLTF'] },
   { label:'Edit', items:['Undo','Redo','Delete Selected','Copy','Paste','Clear Scene'] },
   { label:'Add',  submenus:[
     { label:'Mesh', items:meshItems, submenu:true },
@@ -47,6 +47,8 @@ export default function Menubar() {
     if(item==='Copy') copySelected()
     if(item==='Paste') pasteClipboard()
     if(item==='Delete Selected') selectedIds.forEach(id=>removePrimitive(id))
+    if(item==='Export GLB') window.dispatchEvent(new CustomEvent('export-scene', { detail: 'glb' }))
+    if(item==='Export GLTF') window.dispatchEvent(new CustomEvent('export-scene', { detail: 'gltf' }))
   }
 
   const S = {
@@ -60,7 +62,7 @@ export default function Menubar() {
     <div style={S.bar}>
       {/* Logo */}
       <div style={{ display:'flex', alignItems:'center', gap:'8px', marginRight:'28px' }}>
-        <span style={{ fontSize:'13px', fontWeight:700, letterSpacing:'0.5px', color:'var(--text-primary)' }}>Airix — AI-Powered Aircraft Design & Fleet Intelligence</span>
+        <span style={{ fontSize:'13px', fontWeight:700, letterSpacing:'0.5px', color:'var(--text-primary)' }}>Airix</span>
       </div>
 
       {/* Menus */}

@@ -1,6 +1,8 @@
 import React, { Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Grid, GizmoHelper, GizmoViewport } from '@react-three/drei'
+import { useThree } from '@react-three/fiber'
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
 import SceneObjects from './SceneObjects'
 import useStore from '../store/store'
 
@@ -31,6 +33,7 @@ export default function Viewport() {
         <SceneGrid />
         <SceneObjects />
         <SceneControls />
+        <SceneExporter />
       </Suspense>
     </Canvas>
   )
@@ -84,4 +87,40 @@ function SceneControls() {
       </GizmoHelper>
     </>
   )
+}
+
+/* ── Scene Exporter ── */
+function SceneExporter() {
+  const { scene } = useThree()
+  
+  React.useEffect(() => {
+    const handleExport = (e) => {
+      const isBinary = e.detail === 'glb'
+      const exporter = new GLTFExporter()
+      
+      exporter.parse(
+        scene,
+        (gltf) => {
+          const blob = new Blob([isBinary ? gltf : JSON.stringify(gltf, null, 2)], {
+            type: isBinary ? 'application/octet-stream' : 'text/plain',
+          })
+          const url = URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = `airix_export.${isBinary ? 'glb' : 'gltf'}`
+          link.click()
+          URL.revokeObjectURL(url)
+        },
+        (error) => {
+          console.error('An error happened during parsing', error)
+        },
+        { binary: isBinary }
+      )
+    }
+
+    window.addEventListener('export-scene', handleExport)
+    return () => window.removeEventListener('export-scene', handleExport)
+  }, [scene])
+  
+  return null
 }
