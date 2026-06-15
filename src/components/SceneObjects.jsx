@@ -38,7 +38,6 @@ export default function SceneObjects() {
 
 /* ═══════════════════════════════════════════════
    GEOMETRY FACTORY — returns JSX <xxxGeometry>
-   for standard primitives only.
    ═══════════════════════════════════════════════ */
 function getGeometryElement(type, args) {
   switch (type) {
@@ -61,8 +60,7 @@ function getGeometryElement(type, args) {
 }
 
 /* ═══════════════════════════════════════════════
-   LIGHT HELPERS — renders actual Three lights
-   inside the helper mesh
+   LIGHT HELPERS
    ═══════════════════════════════════════════════ */
 const LIGHT_TYPES = new Set([
   'pointlight', 'directionallight', 'spotlight',
@@ -138,14 +136,14 @@ function GltfModel({ url, color }) {
   if (error) return (
     <mesh>
       <boxGeometry args={[1, 1, 1]} />
-      <meshBasicMaterial color="red" wireframe />
+      <meshBasicMaterial color="#b53333" wireframe />
     </mesh>
   )
 
   if (!cloned) return (
     <mesh>
       <sphereGeometry args={[0.5, 16, 16]} />
-      <meshBasicMaterial color="#4a9eff" wireframe />
+      <meshBasicMaterial color="#3898ec" wireframe />
     </mesh>
   )
 
@@ -153,8 +151,7 @@ function GltfModel({ url, color }) {
 }
 
 /* ═══════════════════════════════════════════════
-   INDIVIDUAL SCENE OBJECT — handles all types:
-   standard mesh, csg_result, gltf, light
+   INDIVIDUAL SCENE OBJECT
    ═══════════════════════════════════════════════ */
 const SceneObject = React.memo(function SceneObject({
   obj,
@@ -198,25 +195,40 @@ const SceneObject = React.memo(function SceneObject({
   const isLight = LIGHT_TYPES.has(obj.type)
   const isSciFi = materialMode === 'scifi' && !isLight && obj.type !== 'gltf'
 
-  /* ── Material selection ── */
+  /* ── Material selection — light-theme optimized ── */
   const getMaterial = () => {
     if (isLight) return <meshBasicMaterial color={obj.color || '#ffdd44'} wireframe />
     switch (materialMode) {
-      case 'wireframe': return <meshBasicMaterial color="#4a9eff" wireframe />
-      case 'clay':      return <meshStandardMaterial color="#c8c8c8" roughness={0.9} metalness={0} />
-      case 'normals':   return <meshNormalMaterial />
-      case 'xray':      return <meshBasicMaterial color="#4a9eff" transparent opacity={0.15} depthWrite={false} />
-      case 'scifi':     return (
-        <meshPhongMaterial
-          color={0x001a33}
-          emissive={0x002266}
-          emissiveIntensity={0.4}
-          transparent
-          opacity={0.75}
-          side={THREE.DoubleSide}
-        />
-      )
-      default: return <meshStandardMaterial color={obj.color || '#aaaaaa'} roughness={0.7} metalness={0.1} />
+      /* Dark navy wireframe reads well on parchment bg */
+      case 'wireframe':
+        return <meshBasicMaterial color="#5b8cb8" wireframe />
+
+      case 'clay':
+        return <meshStandardMaterial color="#d4cfc5" roughness={0.85} metalness={0} />
+
+      case 'normals':
+        return <meshNormalMaterial />
+
+      /* Soft translucent blue — visible but airy on white */
+      case 'xray':
+        return <meshBasicMaterial color="#7ab8e0" transparent opacity={0.12} depthWrite={false} />
+
+      /* ── Sci-Fi: warm blue holographic for light bg ── */
+      case 'scifi':
+        return (
+          <meshPhongMaterial
+            color={0x88bbee}
+            emissive={0x4488cc}
+            emissiveIntensity={0.3}
+            transparent
+            opacity={0.35}
+            side={THREE.DoubleSide}
+          />
+        )
+
+      /* solid — warm stone tones */
+      default:
+        return <meshStandardMaterial color={obj.color || '#c8c3b8'} roughness={0.7} metalness={0.05} />
     }
   }
 
@@ -231,16 +243,13 @@ const SceneObject = React.memo(function SceneObject({
     />
   ) : null
 
-  /* ── Selection edge highlight ── */
+  /* ── Selection edge highlight — warm terracotta ── */
   const selectionEdge = isSelected && obj.type !== 'gltf' ? (
-    <Edges threshold={15} color="#ffdd00" lineWidth={1} scale={1.002} />
+    <Edges threshold={15} color="#c96442" lineWidth={1} scale={1.002} />
   ) : null
 
   /* ════════════════════════════════
      RENDER: CSG_RESULT
-     The geometry is a BufferGeometry
-     already computed and stored in
-     Zustand. We just attach it.
      ════════════════════════════════ */
   if (obj.type === 'csg_result' && obj.geometry) {
     return (
@@ -267,7 +276,7 @@ const SceneObject = React.memo(function SceneObject({
             scale={obj.scale}
             geometry={obj.geometry}
           >
-            <meshBasicMaterial color={0x00aaff} wireframe transparent opacity={0.3} />
+            <meshBasicMaterial color={0x6699cc} wireframe transparent opacity={0.4} />
           </mesh>
         )}
 
@@ -298,7 +307,6 @@ const SceneObject = React.memo(function SceneObject({
 
   /* ════════════════════════════════
      RENDER: LIGHTS
-     Show gizmo mesh + actual light
      ════════════════════════════════ */
   if (isLight) {
     return (
@@ -324,7 +332,6 @@ const SceneObject = React.memo(function SceneObject({
 
   /* ════════════════════════════════
      RENDER: STANDARD MESH
-     (box, sphere, cone, etc.)
      ════════════════════════════════ */
   const geometryEl = getGeometryElement(obj.type, obj.geometryArgs || [])
 
@@ -344,7 +351,7 @@ const SceneObject = React.memo(function SceneObject({
         {selectionEdge}
       </mesh>
 
-      {/* SciFi wireframe overlay */}
+      {/* SciFi wireframe overlay — soft light blue on white bg */}
       {isSciFi && (
         <mesh
           position={obj.position}
@@ -352,7 +359,7 @@ const SceneObject = React.memo(function SceneObject({
           scale={obj.scale}
         >
           {getGeometryElement(obj.type, obj.geometryArgs || [])}
-          <meshBasicMaterial color={0x00aaff} wireframe transparent opacity={0.3} />
+          <meshBasicMaterial color={0x6699cc} wireframe transparent opacity={0.4} />
         </mesh>
       )}
 

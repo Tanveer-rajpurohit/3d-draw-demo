@@ -29,7 +29,6 @@ export default function Viewport() {
       <Suspense fallback={<LoadingFallback />}>
         <SceneLighting />
         <SceneGrid />
-        <FloorPlane />
         <SceneObjects />
         <SceneControls />
       </Suspense>
@@ -49,7 +48,7 @@ function SceneLighting() {
   )
 }
 
-/* ── Warm light-mode grid ── */
+/* ── Warm light-mode grid only — no solid floor plane ── */
 function SceneGrid() {
   return (
     <Grid
@@ -65,16 +64,6 @@ function SceneGrid() {
       fadeStrength={1}
       infiniteGrid
     />
-  )
-}
-
-/* ── Warm white floor ── */
-function FloorPlane() {
-  return (
-    <mesh position={[0, -0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[80, 80]} />
-      <meshStandardMaterial color="#ede9df" roughness={1} metalness={0} />
-    </mesh>
   )
 }
 
