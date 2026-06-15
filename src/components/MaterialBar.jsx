@@ -3,11 +3,12 @@ import useStore from '../store/store'
 
 const modes = [
   { id: 'solid',     label: 'Solid',     bg: 'radial-gradient(circle at 35% 35%, #c8c3b8, #a09888)' },
+  { id: 'diffuse',   label: 'Diffuse',   bg: 'conic-gradient(from 0deg, #e07050, #5090d0, #50b868, #d0a040, #e07050)' },
   { id: 'wireframe', label: 'Wireframe', bg: 'transparent', border: '1.5px solid #5b8cb8' },
   { id: 'clay',      label: 'Clay',      bg: 'radial-gradient(circle at 35% 35%, #d4cfc5, #b8b0a4)' },
   { id: 'normals',   label: 'Normals',   bg: 'linear-gradient(135deg, #e87070, #70c878, #7090e0)' },
   { id: 'scifi',     label: 'Sci-Fi',    bg: 'radial-gradient(circle at 35% 35%, #a8ccee, #6699cc)', shadow: '0 0 6px rgba(102,153,204,.3)' },
-  { id: 'xray',      label: 'X-Ray',     bg: 'radial-gradient(circle at 35% 35%, rgba(122,184,224,.5), rgba(122,184,224,.15))' },
+  { id: 'xray',      label: 'X-Ray',     bg: 'radial-gradient(circle at 35% 35%, rgba(74,144,204,.6), rgba(74,144,204,.2))' },
 ]
 
 export default function MaterialBar() {

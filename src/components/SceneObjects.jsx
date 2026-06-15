@@ -101,14 +101,23 @@ function createThreeMaterial(materialMode, color) {
     case 'normals':
       return new THREE.MeshNormalMaterial()
     case 'xray':
-      return new THREE.MeshBasicMaterial({ color: '#7ab8e0', transparent: true, opacity: 0.12, depthWrite: false })
+      return new THREE.MeshBasicMaterial({
+        color: '#4a90cc', transparent: true, opacity: 0.35,
+        depthWrite: false, side: THREE.DoubleSide,
+      })
     case 'scifi':
       return new THREE.MeshPhongMaterial({
         color: 0x88bbee, emissive: 0x4488cc, emissiveIntensity: 0.3,
         transparent: true, opacity: 0.35, side: THREE.DoubleSide,
       })
-    default:
-      return new THREE.MeshStandardMaterial({ color: color || '#c8c3b8', roughness: 0.4, metalness: 0.1 })
+    case 'diffuse':
+      return new THREE.MeshStandardMaterial({
+        color: color || '#c8c3b8', roughness: 0.5, metalness: 0.05,
+      })
+    default: // solid
+      return new THREE.MeshStandardMaterial({
+        color: color || '#c8c3b8', roughness: 0.4, metalness: 0.1,
+      })
   }
 }
 
@@ -134,7 +143,6 @@ function GltfModel({ url, color, materialMode }) {
     return () => { alive = false }
   }, [url])
 
-  // Re-apply material whenever materialMode or color changes
   const cloned = React.useMemo(() => {
     if (!scene) return null
     const c = scene.clone()
@@ -162,6 +170,20 @@ function GltfModel({ url, color, materialMode }) {
   )
 
   return <primitive object={cloned} />
+}
+
+/* ═══════════════════════════════════════════════
+   SELECTION BOX — wireframe box around GLTF models
+   when selected (since Edges component doesn't
+   work on group/primitive nodes)
+   ═══════════════════════════════════════════════ */
+function SelectionBox({ color }) {
+  return (
+    <mesh>
+      <boxGeometry args={[1.05, 1.05, 1.05]} />
+      <meshBasicMaterial color={color || '#c96442'} wireframe transparent opacity={0.6} />
+    </mesh>
+  )
 }
 
 /* ═══════════════════════════════════════════════
@@ -198,18 +220,32 @@ const SceneObject = React.memo(function SceneObject({
   const isLight = LIGHT_TYPES.has(obj.type)
   const isSciFi = materialMode === 'scifi' && !isLight
 
-  /* ── JSX Material for non-GLTF ── */
+  /* ── JSX Material for non-GLTF meshes ── */
   const getMaterial = () => {
     if (isLight) return <meshBasicMaterial color={obj.color || '#ffdd44'} wireframe />
     switch (materialMode) {
       case 'wireframe':
         return <meshBasicMaterial color="#5b8cb8" wireframe />
+
       case 'clay':
         return <meshStandardMaterial color="#d4cfc5" roughness={0.85} metalness={0} />
+
       case 'normals':
         return <meshNormalMaterial />
+
+      /* X-Ray — visible on white bg: stronger blue, higher opacity */
       case 'xray':
-        return <meshBasicMaterial color="#7ab8e0" transparent opacity={0.12} depthWrite={false} />
+        return (
+          <meshBasicMaterial
+            color="#4a90cc"
+            transparent
+            opacity={0.35}
+            depthWrite={false}
+            side={THREE.DoubleSide}
+          />
+        )
+
+      /* Sci-Fi holographic */
       case 'scifi':
         return (
           <meshPhongMaterial
@@ -221,11 +257,30 @@ const SceneObject = React.memo(function SceneObject({
             side={THREE.DoubleSide}
           />
         )
+
+      /* Diffuse — shows each object's own color with proper shading */
+      case 'diffuse':
+        return (
+          <meshStandardMaterial
+            color={obj.color || '#c8c3b8'}
+            roughness={0.5}
+            metalness={0.05}
+          />
+        )
+
+      /* Solid — uses object color, slightly rougher */
       default:
-        return <meshStandardMaterial color={obj.color || '#c8c3b8'} roughness={0.7} metalness={0.05} />
+        return (
+          <meshStandardMaterial
+            color={obj.color || '#c8c3b8'}
+            roughness={0.7}
+            metalness={0.05}
+          />
+        )
     }
   }
 
+  /* ── Transform Controls — only on the LAST selected ── */
   const transformEl = isActiveTransform ? (
     <TransformControls
       object={meshRef}
@@ -236,11 +291,14 @@ const SceneObject = React.memo(function SceneObject({
     />
   ) : null
 
-  const selectionEdge = isSelected && obj.type !== 'gltf' ? (
-    <Edges threshold={15} color="#c96442" lineWidth={1} scale={1.002} />
+  /* ── Selection edge — shown on ALL selected objects (not just active) ── */
+  const selectionEdge = isSelected ? (
+    <Edges threshold={15} color="#c96442" lineWidth={2} scale={1.003} />
   ) : null
 
-  /* ── CSG_RESULT ── */
+  /* ════════════════════════════════
+     RENDER: CSG_RESULT
+     ════════════════════════════════ */
   if (obj.type === 'csg_result' && obj.geometry) {
     return (
       <group>
@@ -261,19 +319,25 @@ const SceneObject = React.memo(function SceneObject({
     )
   }
 
-  /* ── GLTF — material follows materialMode ── */
+  /* ════════════════════════════════
+     RENDER: GLTF — with selection box
+     ════════════════════════════════ */
   if (obj.type === 'gltf') {
     return (
       <group>
         <group ref={meshRef} position={obj.position} rotation={obj.rotation} scale={obj.scale} onClick={handleClick}>
           <GltfModel url={obj.url} color={obj.color} materialMode={materialMode} />
+          {/* Selection indicator for GLTF — wireframe bounding box */}
+          {isSelected && <SelectionBox color="#c96442" />}
         </group>
         {transformEl}
       </group>
     )
   }
 
-  /* ── LIGHTS ── */
+  /* ════════════════════════════════
+     RENDER: LIGHTS
+     ════════════════════════════════ */
   if (isLight) {
     return (
       <group>
@@ -288,7 +352,9 @@ const SceneObject = React.memo(function SceneObject({
     )
   }
 
-  /* ── STANDARD MESH ── */
+  /* ════════════════════════════════
+     RENDER: STANDARD MESH
+     ════════════════════════════════ */
   const geometryEl = getGeometryElement(obj.type, obj.geometryArgs || [])
 
   return (
