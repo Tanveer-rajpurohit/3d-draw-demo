@@ -1,157 +1,67 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import useStore from '../store/store'
 
 const shortcuts = [
-  { group: 'General', items: [
-    { key: 'Del', action: 'Delete Selected Object' },
-    { key: 'Ctrl+Z', action: 'Undo' },
-    { key: 'Ctrl+Y', action: 'Redo' },
-    { key: 'Ctrl+C', action: 'Copy' },
-    { key: 'Ctrl+V', action: 'Paste' },
-  ]},
-  { group: 'Tools', items: [
-    { key: 'W', action: 'Translate Tool' },
-    { key: 'E', action: 'Rotate Tool' },
-    { key: 'R', action: 'Scale Tool' },
-  ]},
-  { group: 'Viewport', items: [
-    { key: 'Left Click', action: 'Select Object' },
-    { key: 'Right Drag', action: 'Pan Camera' },
-    { key: 'Left Drag', action: 'Orbit Camera' },
-    { key: 'Scroll', action: 'Zoom Camera' },
-  ]},
+  { key: 'W', action: 'Translate Mode' },
+  { key: 'E', action: 'Rotate Mode' },
+  { key: 'R', action: 'Scale Mode' },
+  { key: 'Delete', action: 'Delete Selected' },
+  { key: 'Ctrl+C', action: 'Copy' },
+  { key: 'Ctrl+V', action: 'Paste' },
+  { key: 'Ctrl+Z', action: 'Undo' },
+  { key: 'Ctrl+Y', action: 'Redo' },
+  { key: '?', action: 'Show Shortcuts' },
+  { key: 'Click', action: 'Select Object' },
+  { key: 'Shift+Click', action: 'Multi-select' },
+  { key: 'Click Empty', action: 'Deselect All' },
 ]
 
 export default function ShortcutsModal() {
-  const showShortcuts = useStore((s) => s.showShortcuts)
-  const setShowShortcuts = useStore((s) => s.setShowShortcuts)
+  const show = useStore((s) => s.showShortcuts)
+  const setShow = useStore((s) => s.setShowShortcuts)
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && showShortcuts) {
-        setShowShortcuts(false)
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [showShortcuts, setShowShortcuts])
-
-  if (!showShortcuts) return null
+  if (!show) return null
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 100,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      backdropFilter: 'blur(4px)',
-      animation: 'fadeIn 0.15s ease-out forwards',
+    <div onClick={() => setShow(false)} style={{
+      position: 'fixed', inset: 0, zIndex: 100,
+      backgroundColor: 'rgba(0,0,0,.6)', backdropFilter: 'blur(6px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
-      <div style={{
-        backgroundColor: 'var(--bg-panel)',
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
-        width: '460px',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
+      <div onClick={(e) => e.stopPropagation()} style={{
+        width: '380px', backgroundColor: 'var(--bg-panel)',
+        border: '1px solid var(--border)', borderRadius: '12px',
+        padding: '24px', boxShadow: '0 16px 48px rgba(0,0,0,.5)',
+        animation: 'fadeIn .15s ease-out forwards',
       }}>
-        {/* Header */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 20px',
-          borderBottom: '1px solid var(--border)',
-          backgroundColor: 'var(--bg-surface)',
-        }}>
-          <h2 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Keyboard Shortcuts</h2>
-          <button
-            onClick={() => setShowShortcuts(false)}
-            style={{
-              color: 'var(--text-muted)', cursor: 'pointer',
-              background: 'none', border: 'none', fontSize: '16px',
-              transition: 'color 0.15s ease',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
-            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
-          >
-            ✕
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <h2 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '.04em' }}>
+            ⌨ Keyboard Shortcuts
+          </h2>
+          <button onClick={() => setShow(false)} style={{
+            border: 'none', background: 'none', color: 'var(--text-muted)',
+            cursor: 'pointer', fontSize: '16px', padding: '4px',
+          }}>✕</button>
         </div>
 
-        {/* Content */}
-        <div style={{ padding: '20px', maxHeight: '60vh', overflowY: 'auto' }}>
-          {shortcuts.map((group) => (
-            <div key={group.group} style={{ marginBottom: '16px' }}>
-              <h3 style={{
-                fontSize: '10px', fontWeight: 700,
-                color: 'var(--accent-teal)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.12em',
-                marginBottom: '10px',
-              }}>
-                {group.group}
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {group.items.map((item) => (
-                  <div key={item.action} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '4px 0',
-                    borderBottom: '1px solid rgba(42, 42, 56, 0.3)',
-                  }}>
-                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{item.action}</span>
-                    <kbd style={{
-                      padding: '3px 8px',
-                      backgroundColor: 'var(--bg-base)',
-                      border: '1px solid var(--border)',
-                      borderRadius: '4px',
-                      fontSize: '10px',
-                      fontFamily: "'SF Mono', 'Fira Code', monospace",
-                      color: 'var(--text-primary)',
-                      boxShadow: 'inset 0 -1px 0 var(--border)',
-                    }}>
-                      {item.key}
-                    </kbd>
-                  </div>
-                ))}
-              </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {shortcuts.map(({ key, action }) => (
+            <div key={key} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '7px 8px', borderRadius: '4px', transition: 'background .1s ease',
+            }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-surface)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{action}</span>
+              <kbd style={{
+                padding: '3px 8px', backgroundColor: 'var(--bg-base)',
+                border: '1px solid var(--border)', borderRadius: '4px',
+                fontSize: '10px', fontFamily: 'var(--mono-font)',
+                color: 'var(--text-muted)', minWidth: '28px', textAlign: 'center',
+              }}>{key}</kbd>
             </div>
           ))}
-        </div>
-
-        {/* Footer */}
-        <div style={{
-          padding: '12px 20px',
-          borderTop: '1px solid var(--border)',
-          backgroundColor: 'var(--bg-base)',
-          display: 'flex',
-          justifyContent: 'flex-end',
-        }}>
-          <button
-            onClick={() => setShowShortcuts(false)}
-            style={{
-              padding: '6px 16px',
-              backgroundColor: 'var(--bg-surface)',
-              border: '1px solid var(--border)',
-              borderRadius: '6px',
-              fontSize: '11px',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              transition: 'background 0.15s ease',
-              fontFamily: 'inherit',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-panel-hover)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-surface)'}
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>

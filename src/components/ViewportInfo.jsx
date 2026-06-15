@@ -5,37 +5,27 @@ export default function ViewportInfo() {
   const sceneObjects = useStore((s) => s.sceneObjects)
   const materialMode = useStore((s) => s.materialMode)
 
-  const totalObjects = sceneObjects.length
-  const vertexEstimates = {
-    box: 24, sphere: 1056, cylinder: 192, cone: 192, torus: 576,
-    plane: 4, capsule: 320, circle: 96, dodecahedron: 60,
-    icosahedron: 42, octahedron: 24, tetrahedron: 12, ring: 128,
-    torusknot: 1536, lathe: 144, tube: 1040, gltf: 500,
-  }
+  const vertEst = sceneObjects.reduce((acc, o) => {
+    if (o.type === 'csg_result' && o.geometry) return acc + (o.geometry.attributes?.position?.count || 0)
+    if (o.type === 'gltf') return acc + 2000
+    const t = o.type
+    if (t === 'sphere') return acc + 528
+    if (t === 'cylinder' || t === 'cone') return acc + 66
+    if (t === 'torus') return acc + 1600
+    if (t === 'torusknot') return acc + 512
+    return acc + 24
+  }, 0)
 
-  let totalVertices = 0
-  let totalTriangles = 0
-  sceneObjects.forEach((obj) => {
-    const v = vertexEstimates[obj.type] || 24
-    totalVertices += v
-    totalTriangles += Math.floor(v / 3) * 2
-  })
+  const triEst = Math.round(vertEst * 0.67)
 
   return (
     <div style={{
-      position: 'absolute',
-      bottom: '100px',
-      left: '12px',
-      fontFamily: "'SF Mono', 'Fira Code', monospace",
-      fontSize: '10px',
-      color: 'var(--text-muted)',
-      lineHeight: 1.6,
-      pointerEvents: 'none',
-      userSelect: 'none',
-      zIndex: 15,
+      position: 'absolute', bottom: '36px', left: '12px',
+      fontSize: '10px', fontFamily: 'var(--mono-font)', color: 'var(--text-muted)',
+      lineHeight: 1.6, pointerEvents: 'none', zIndex: 15, userSelect: 'none',
     }}>
-      <div>{totalObjects} objects  {totalVertices} vertices  {totalTriangles} triangles</div>
-      <div>0.5ms  |  {materialMode} mode</div>
+      <div>{sceneObjects.length} objects {vertEst} vertices {triEst} triangles</div>
+      <div>0.5ms | {materialMode} mode</div>
     </div>
   )
 }
