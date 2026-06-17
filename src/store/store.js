@@ -84,6 +84,8 @@ const useStore = create((set, get) => ({
   sceneObjects: [],
   selectedIds: [],
   transformMode: 'translate',
+  exportGroupRef: null,
+  setExportGroupRef: (ref) => set({ exportGroupRef: ref }),
 
   // ── Material mode ──
   materialMode: 'scifi',

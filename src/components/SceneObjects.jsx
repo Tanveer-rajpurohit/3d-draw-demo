@@ -16,9 +16,10 @@ export default function SceneObjects() {
   const transformMode = useStore((s) => s.transformMode)
   const saveHistory = useStore((s) => s.saveHistory)
   const materialMode = useStore((s) => s.materialMode)
+  const setExportGroupRef = useStore((s) => s.setExportGroupRef)
 
   return (
-    <group name="UserSceneObjects">
+    <group ref={setExportGroupRef} name="UserSceneObjects">
       {sceneObjects.map((obj) => (
         <SceneObject
           key={obj.id}
